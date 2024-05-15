@@ -1,0 +1,31 @@
+name: test - remove-cluster
+
+on:
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: test-remove-cluster-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: create cluster
+        id: create-cluster
+        uses: replicatedhq/compatibility-actions/create-cluster@v1
+        with:
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          kubernetes-distribution: kind
+          timeout-minutes: 5
+
+      - name: remove cluster
+        if: always()
+        uses: replicatedhq/compatibility-actions/remove-cluster@emosbaugh/e2e-test-prepare-cluster
+        continue-on-error: true # It could be that the cluster is already removed
+        with:
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          cluster-id: ${{ steps.create-cluster.outputs.cluster-id }}
