@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: create cluster
-        id: create-cluster
+        id: create-cluster 
         uses: replicatedhq/compatibility-actions/create-cluster@v1
         with:
           api-token: ${{ secrets.REPLICATED_API_TOKEN }}
