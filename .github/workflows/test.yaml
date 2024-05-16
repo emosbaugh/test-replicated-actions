@@ -16,11 +16,22 @@ jobs:
     steps:
       - name: create cluster
         id: create-cluster 
-        uses: replicatedhq/compatibility-actions/create-cluster@v1
+        uses: replicatedhq/compatibility-actions/create-cluster@emosbaugh/e2e-test-prepare-cluster
         with:
           api-token: ${{ secrets.REPLICATED_API_TOKEN }}
           kubernetes-distribution: kind
           timeout-minutes: 5
+
+      - name: prepare cluster
+        id: prepare-cluster 
+        uses: replicatedhq/compatibility-actions/prepare-cluster@emosbaugh/e2e-test-prepare-cluster
+        with:
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          app-slug: replicated-actions-ci # from the Replicated QA team
+          chart: wordpress-${{ env.WORDPRESS_CHART_VERSION }}.tgz
+          kubernetes-distribution: kind
+          helm-chart-name: wordpress
+          helm-run-preflights: false
 
       - name: remove cluster
         if: always()
@@ -29,3 +40,11 @@ jobs:
         with:
           api-token: ${{ secrets.REPLICATED_API_TOKEN }}
           cluster-id: ${{ steps.create-cluster.outputs.cluster-id }}
+
+      - name: remove cluster
+        if: always()
+        uses: replicatedhq/compatibility-actions/remove-cluster@emosbaugh/e2e-test-prepare-cluster
+        continue-on-error: true # It could be that the cluster is already removed
+        with:
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          cluster-id: ${{ steps.prepare-cluster.outputs.cluster-id }}
